@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+require 'introvert_tempmon'
+require 'sinatra'
+
+machines = {
+  mumindalen: %w[sniff snorken muminpappa wayne-bohmker kopimist lillamy macf44d30661671],
+  vardagsrum: %w[bob]
+}.freeze
+
+set :public_folder, 'public'
+
+get '/' do
+  send_file File.join(settings.public_folder, 'index.html')
+end
+
+get '/api/temperatures' do
+  content_type :json
+  Hash[machines.map do |group, machs|
+    [group, Hash[machs.map do |m|
+      [m, IntrovertTempmon::Machine
+            .new("#{m}.introvert.software")
+            .avg_temp(2)]
+    end]]
+  end].to_json
+end

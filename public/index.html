@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <title>Introvert temperature monitoring</title>
+  </head>
+  <body>
+    <div id="app" class="container" v-cloak>
+      <div class="w-100 text-center">
+        <h1>Temperaturer</h1>
+      </div>
+
+      <div class="row" v-if="!machines">
+        <h1 class="m-5">Loading, please wait...</h1>
+      </div>
+
+      <div class="card-columns my-3" id="maskiner" v-else>
+        <div v-for="data in machines">
+          <div class="card my-2" :id="name">
+            <div class="card-header w-100 text-center">
+              {{ data.name }}
+            </div>
+            <div class="card-body text-center">
+              {{ data.temp | shortnum }} &#x2103;
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      body {
+        background-color: #eee;
+      }
+
+      [v-cloak] {
+        display: none;
+      }
+
+      .error-summary {
+        font-size: 0.75rem;
+      }
+
+      .error-summary > h1 {
+        font-size: 1rem;
+      }
+      
+      .error-summary > h2 {
+        font-size: 0.9rem;
+        margin-top: -5px;
+      }
+
+      @media (min-width: 576px) {
+        #maskiner {
+          column-count: 2;
+        }
+      }
+      @media (min-width: 992px) {
+        #maskiner {
+          column-count: 4;
+        }
+      }
+    </style>
+
+    <script src="//unpkg.com/vue/dist/vue.min.js"></script>
+    <script src="//unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+
+    <script>
+      App = new Vue({
+                    el: "#app",
+
+                    data() {
+                      return {
+                        machines: {}
+                      }
+                    },
+
+                    created() {
+                      this.refreshData();
+                    },
+
+                    filters: {
+                      shortnum: function (value) {
+                        return Math.round(value * 100) / 100
+                      }
+                    },
+
+                    methods: {
+                      refreshData: function() {
+                        axios.get('/api/temperatures').then(function(resp) {
+                          for (it in resp.data) {
+                            let group_name = it;
+                            let machines = resp.data[it];
+
+                            for (var machine in machines) {
+                              Vue.set(App.machines, machine, { group: group_name, name: machine, temp: machines[machine] });
+                            }
+                          }
+                        });
+
+                        setTimeout(this.refreshData, 10000);
+                      }
+                    }
+      });
+    </script>
+  </body>
+</html>
