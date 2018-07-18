@@ -7,6 +7,8 @@ image: ruby:2.4
 
 pages:
   image: busybox:latest
+  script:
+    - sed -e 's!// axios!axios!' public/index.html
   artifacts:
     paths:
       - public
