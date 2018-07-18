@@ -8,7 +8,7 @@ image: ruby:2.4
 pages:
   image: busybox:latest
   script:
-    - sed -e "s!// axios.defaults.baseUrl = .*;!axios.defaults.baseUrl = '$DASHBOARD_URL'!" -i public/index.html
+    - sed -e "s|// axios.defaults.*;|axios.defaults.baseUrl = '$DASHBOARD_URL'|" -i public/index.html
   artifacts:
     paths:
       - public
