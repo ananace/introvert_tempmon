@@ -27,7 +27,17 @@ module IntrovertTempmon
       end
     end
 
-    def get_data(points = 1)
+    def load_data(points = 1)
+      resp = http.get(URI("http://#{hostname}:#{port}/api/v1/data?chart=system.load&points=#{points + 1}"))
+      resp.value
+      data = JSON.parse(resp.body, symbolize_names: true)
+
+      Hash[data[:labels].map.with_index do |label, i|
+        [label, data[:data].map { |point| point[i] }]
+      end]
+    end
+
+    def temperature_data(points = 1)
       sensors = {}
       temperature_sensors.each do |sensor|
         resp = http.get(URI("http://#{hostname}:#{port}/api/v1/data?chart=#{sensor[:id]}&points=#{points + 1}"))
@@ -46,11 +56,11 @@ module IntrovertTempmon
       sensors
     end
 
-    def avg_temp(points = 1)
+    def avg_temperature(points = 1)
       temp = 0.0
       count = 0
 
-      get_data(points).select { |s, _d| s =~ /coretemp/ }.each do |_s, data|
+      temperature_data(points).select { |s, _d| s =~ /coretemp/ }.each do |_s, data|
         data.each do |_name, counter|
           temp += counter.inject(0) { |n, p| count += 1; n + p[:data] }
         end

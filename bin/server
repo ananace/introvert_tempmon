@@ -14,6 +14,17 @@ get '/' do
   send_file File.join(settings.public_folder, 'index.html')
 end
 
+get '/api/load' do
+  content_type :json
+  Hash[machines.map do |group, machs|
+    [group, Hash[machs.map do |m|
+      [m, IntrovertTempmon::Machine
+            .new("#{m}.introvert.software")
+            .load_data]
+    end]]
+  end].to_json
+end
+
 get '/api/temperatures' do
   content_type :json
   Hash[machines.map do |group, machs|
