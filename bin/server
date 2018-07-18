@@ -20,7 +20,9 @@ get '/api/load' do
     [group, Hash[machs.map do |m|
       [m, IntrovertTempmon::Machine
             .new("#{m}.introvert.software")
-            .load_data]
+            .load_data
+            .select { |k, _v| k.start_with? 'load' }
+            .map { |_k, v| v.first }]
     end]]
   end].to_json
 end
@@ -31,7 +33,7 @@ get '/api/temperatures' do
     [group, Hash[machs.map do |m|
       [m, IntrovertTempmon::Machine
             .new("#{m}.introvert.software")
-            .avg_temp(2)]
+            .avg_temperature(2)]
     end]]
   end].to_json
 end

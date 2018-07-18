@@ -25,6 +25,8 @@
             </div>
             <div class="card-body text-center">
               {{ data.temp | shortnum }} &#x2103;
+              <br/>
+              {{ data.load[0] | shortnum }} {{ data.load[1] | shortnum }} {{ data.load[2] | shortnum }}
             </div>
           </div>
         </div>
@@ -82,7 +84,8 @@
                     },
 
                     created() {
-                      this.refreshData();
+                      this.refreshLoadData();
+                      this.refreshSensorData();
                     },
 
                     filters: {
@@ -92,19 +95,43 @@
                     },
 
                     methods: {
-                      refreshData: function() {
+                      refreshLoadData: function() {
+                        axios.get('/api/load').then(function(resp) {
+                          for (it in resp.data) {
+                            let group_name = it;
+                            let machines = resp.data[it];
+
+                            for (var machine in machines) {
+                              if (!App.machines[machine]) {
+                                Vue.set(App.machines, machine, { name: machine, group: group_name });
+                              }
+
+                              Vue.set(App.machines[machine], 'load', machines[machine]);
+                            }
+                          }
+                        });
+
+                        setTimeout(this.refreshLoadData, 20000);
+                      },
+                      refreshSensorData: function() {
                         axios.get('/api/temperatures').then(function(resp) {
                           for (it in resp.data) {
                             let group_name = it;
                             let machines = resp.data[it];
 
                             for (var machine in machines) {
-                              Vue.set(App.machines, machine, { group: group_name, name: machine, temp: machines[machine] });
+                              console.log(machine);
+                              if (!App.machines[machine]) {
+                                console.log("Creating machine " + machine);
+                                Vue.set(App.machines, machine, { name: machine, group: group_name });
+                              }
+
+                              Vue.set(App.machines[machine], 'temp', machines[machine]);
                             }
                           }
                         });
 
-                        setTimeout(this.refreshData, 10000);
+                        setTimeout(this.refreshSensorData, 10000);
                       }
                     }
       });
